@@ -7,7 +7,15 @@ fn main() -> Result<()> {
 
     println!("part1: {}", part1(&map, direction));
 
+    let directions = [(1, 1), (1, 3), (1, 5), (1, 7), (2, 1)];
+
+    println!("part2: {}", part2(&map, &directions));
+
     Ok(())
+}
+
+fn part2(map: &Vec<String>, directions: &[(usize, usize)]) -> u32 {
+    directions.iter().map(|d| part1(&map, *d)).product()
 }
 
 fn part1(map: &Vec<String>, direction: (usize, usize)) -> u32 {
