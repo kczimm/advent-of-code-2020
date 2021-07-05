@@ -1,7 +1,7 @@
 use input;
 use std::io::Result;
 fn main() -> Result<()> {
-    let expense_report = input::load_file("src/day1/input.txt")?;
+    let expense_report = input::load_file_by_lines("src/day1/input.txt")?;
     let expense_report: Vec<u32> = expense_report
         .into_iter()
         .map(|a| a.parse::<u32>().expect("parse failed"))

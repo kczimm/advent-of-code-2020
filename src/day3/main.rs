@@ -1,7 +1,7 @@
 use input;
 use std::io::Result;
 fn main() -> Result<()> {
-    let map = input::load_file("src/day3/input.txt")?;
+    let map = input::load_file_by_lines("src/day3/input.txt")?;
 
     let direction = (1, 3);
 

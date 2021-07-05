@@ -1,7 +1,7 @@
 use input;
 use std::io::Result;
 fn main() -> Result<()> {
-    let lines = input::load_file("src/day2/input.txt")?;
+    let lines = input::load_file_by_lines("src/day2/input.txt")?;
 
     println!("part1: {}", part1(&lines));
 
