@@ -4,7 +4,7 @@ use std::io::Result;
 use std::collections::VecDeque;
 
 fn main() -> Result<()> {
-    let content = input::load_file("src/day8/input.txt")?;
+    let content = input::load_file("src/day9/input.txt")?;
 
     let preamble_size = 25;
     let num = first_number(&content, preamble_size);
