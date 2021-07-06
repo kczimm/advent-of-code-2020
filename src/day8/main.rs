@@ -7,7 +7,10 @@ fn main() -> Result<()> {
     let content = input::load_file("src/day8/input.txt")?;
 
     let preamble_size = 25;
-    println!("part1: {}", first_number(&content, preamble_size));
+    let num = first_number(&content, preamble_size);
+    println!("part1: {}", num);
+
+    println!("part2: {}", sum_contiguous(&content, num));
 
     Ok(())
 }
@@ -56,7 +59,7 @@ pub fn sum_contiguous(data: &str, num: usize) -> usize {
         }
     }
 
-    contiguous.pop_front().unwrap() + contiguous.pop_back().unwrap()
+    contiguous.iter().min().unwrap() + contiguous.iter().max().unwrap()
 }
 
 #[cfg(test)]
