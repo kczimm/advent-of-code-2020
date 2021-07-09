@@ -2,7 +2,10 @@ use input;
 use std::io::Result;
 
 fn main() -> Result<()> {
-    let _content = input::load_file("src/day11/input.txt")?;
+    let content = input::load_file("src/day11/input.txt")?;
+
+    let mut layout = Layout::from(&content);
+    println!("part1: {}", layout.simulate());
 
     Ok(())
 }
@@ -126,21 +129,21 @@ impl Layout {
         let y = (i / self.dims.0) as isize;
         let mut neighbors = 0;
 
-        for dx in -1..1 {
-            for dy in -1..1 {
+        for dx in -1..=1 {
+            for dy in -1..=1 {
                 let nx = x + dx;
                 let ny = y + dy;
-                if nx < 0 || ny < 0 || (nx == 0 && ny == 0) {
+                if nx < 0 || ny < 0 || (dx == 0 && dy == 0) || nx as usize >= self.dims.1 {
                     continue;
                 }
                 let nx = nx as usize; // should be positive after ^ conditional
                 let ny = ny as usize; // should be positive after ^ conditional
                 let i = self.dims.1 * ny + nx;
-                match self.layout.get(i).expect("bad layout index") {
-                    Position::Occupied => {
-                        neighbors += 1;
+                if let Some(p) = self.layout.get(i) {
+                    match p {
+                        Position::Occupied => neighbors += 1,
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }
@@ -152,6 +155,17 @@ impl Layout {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_num_neighbors_occupied() {
+        let text = "#.LL.L#.##\n#LLLLLL.L#\nL.L.L..L..\n#LLL.LL.L#\n#.LL.LL.LL\n#.LLLL#.##\n..L.L.....\n#LLLLLLLL#\n#.LLLLLL.L\n#.#LLLL.##";
+
+        let layout = Layout::from(text);
+
+        assert_eq!(layout.num_neighbors_occupied(0), 1);
+        assert_eq!(layout.num_neighbors_occupied(6), 0);
+        assert_eq!(layout.num_neighbors_occupied(9), 2);
+    }
 
     #[test]
     fn test_rules() {
@@ -185,18 +199,42 @@ mod tests {
 
         let mut layout = Layout::from(&text);
 
-        let round1 = "#.##.##.##\n#######.##\n#.#.#..#..\n####.##.##\n#.##.##.##\n#.#####.##\n..#.#.....\n##########\n#.######.#\n#.#####.##";
-        layout.do_round();
-        assert_eq!(round1, format!("{}", layout));
-
-        let round2 = "#.LL.L#.##\n#LLLLLL.L#\nL.L.L..L..\n#LLL.LL.L#\n#.LL.LL.LL\n#.LLLL#.##\n..L.L.....\n#LLLLLLLL#\n#.LLLLLL.L\n#.#LLLL.##";
-        layout.do_round();
-        assert_eq!(round2, format!("{}", layout));
-
-        let round3 = "#.##.L#.##\n#L###LL.L#\nL.#.#..#..\n#L##.##.L#\n#.##.LL.LL\n#.###L#.##\n..#.#.....\n#L######L#\n#.LL###L.L\n#.#L###.##";
-        layout.do_round();
-        assert_eq!(round3, format!("{}", layout));
-
         assert_eq!(layout.simulate(), 37);
+    }
+
+    #[test]
+    fn test_round1() {
+        let text = "L.LL.LL.LL\nLLLLLLL.LL\nL.L.L..L..\nLLLL.LL.LL\nL.LL.LL.LL\nL.LLLLL.LL\n..L.L.....\nLLLLLLLLLL\nL.LLLLLL.L\nL.LLLLL.LL";
+        let round1 = "#.##.##.##\n#######.##\n#.#.#..#..\n####.##.##\n#.##.##.##\n#.#####.##\n..#.#.....\n##########\n#.######.#\n#.#####.##";
+
+        let mut layout = Layout::from(&text);
+        layout.do_round();
+
+        assert_eq!(round1, format!("{}", layout));
+    }
+
+    #[test]
+    fn test_round2() {
+        let text = "L.LL.LL.LL\nLLLLLLL.LL\nL.L.L..L..\nLLLL.LL.LL\nL.LL.LL.LL\nL.LLLLL.LL\n..L.L.....\nLLLLLLLLLL\nL.LLLLLL.L\nL.LLLLL.LL";
+        let round2 = "#.LL.L#.##\n#LLLLLL.L#\nL.L.L..L..\n#LLL.LL.L#\n#.LL.LL.LL\n#.LLLL#.##\n..L.L.....\n#LLLLLLLL#\n#.LLLLLL.L\n#.#LLLL.##";
+
+        let mut layout = Layout::from(&text);
+        layout.do_round();
+        layout.do_round();
+
+        assert_eq!(round2, format!("{}", layout));
+    }
+
+    #[test]
+    fn test_round3() {
+        let text = "L.LL.LL.LL\nLLLLLLL.LL\nL.L.L..L..\nLLLL.LL.LL\nL.LL.LL.LL\nL.LLLLL.LL\n..L.L.....\nLLLLLLLLLL\nL.LLLLLL.L\nL.LLLLL.LL";
+        let round3 = "#.##.L#.##\n#L###LL.L#\nL.#.#..#..\n#L##.##.L#\n#.##.LL.LL\n#.###L#.##\n..#.#.....\n#L######L#\n#.LL###L.L\n#.#L###.##";
+
+        let mut layout = Layout::from(&text);
+        layout.do_round();
+        layout.do_round();
+        layout.do_round();
+
+        assert_eq!(round3, format!("{}", layout));
     }
 }
