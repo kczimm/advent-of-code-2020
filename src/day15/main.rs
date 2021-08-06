@@ -1,5 +1,6 @@
 use input;
 
+use std::collections::HashMap;
 use std::io;
 
 fn main() -> io::Result<()> {
@@ -9,7 +10,11 @@ fn main() -> io::Result<()> {
 
     game.take_turns(2020);
 
-    println!("part1: {}", *game.numbers.last().unwrap());
+    println!("part1: {}", game.last_number());
+
+    game.take_turns(30_000_000);
+
+    println!("part2: {}", game.last_number());
 
     Ok(())
 }
@@ -17,43 +22,45 @@ fn main() -> io::Result<()> {
 #[derive(Debug)]
 struct MemoryGame {
     numbers: Vec<usize>,
+    last: HashMap<usize, usize>,
 }
 
 impl MemoryGame {
     fn do_turn(&mut self) {
         let previous_turn = self.numbers.len();
-        let last = self.numbers.last().expect("no numbers in the memory game");
+        let last_number = self.numbers.last().expect("no numbers in the memory game");
         // have we seen the last number before?
-        let mut indices: Vec<usize> = self
-            .numbers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, x)| if *x == *last { Some(i + 1) } else { None })
-            .collect();
-
-        indices.pop(); // we don't want to include the last one.
-
-        if indices.is_empty() {
-            self.numbers.push(0);
-        } else {
-            // unwrap is OK because we know it is not empty.
-            self.numbers.push(previous_turn - indices.last().unwrap());
-        }
+        let next = match self.last.get(last_number) {
+            Some(i) => previous_turn - i,
+            None => 0,
+        };
+        self.last.insert(*last_number, previous_turn);
+        self.numbers.push(next);
     }
 
     fn take_turns(&mut self, num_turns: usize) {
         (self.numbers.len()..num_turns).for_each(|_| self.do_turn());
     }
+
+    fn last_number(&self) -> usize {
+        *self.numbers.last().expect("game has no numbers")
+    }
 }
 
 impl From<&str> for MemoryGame {
     fn from(s: &str) -> Self {
-        let numbers = s
+        let numbers: Vec<usize> = s
             .split(",")
             .map(|x| x.parse::<usize>().expect("failed to parse a number"))
             .collect();
 
-        Self { numbers }
+        let mut last = HashMap::new();
+        // record indices for all but the last number.
+        (0..numbers.len() - 1).for_each(|i| {
+            last.insert(numbers[i], i + 1);
+        });
+
+        Self { numbers, last }
     }
 }
 
