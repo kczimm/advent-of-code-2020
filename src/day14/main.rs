@@ -110,6 +110,34 @@ impl<'a> BitMask<'a> {
         }
         output
     }
+
+    fn apply_v2(&self, value: u64) -> Vec<u64> {
+        let mut output = value;
+        let mut outputs = Vec::new();
+        // overwrite with 1 first
+        for (i, c) in self.mask.chars().enumerate() {
+            match c {
+                '1' => {
+                    output |= 1 << (BITMASK_LEN - i - 1);
+                }
+                _ => {}
+            }
+        }
+
+        // then find X's and output both options
+        for (i, c) in self.mask.chars().enumerate() {
+            match c {
+                'X' => {
+                    let set = output | 1 << (BITMASK_LEN - i - 1);
+                    let clear = output & !(1 << (BITMASK_LEN - i - 1));
+                    outputs.push(set);
+                    outputs.push(clear);
+                }
+                _ => {}
+            }
+        }
+        outputs
+    }
 }
 
 #[cfg(test)]
@@ -136,5 +164,11 @@ mod tests {
         assert_eq!(bitmask.apply(11), 73);
         assert_eq!(bitmask.apply(101), 101);
         assert_eq!(bitmask.apply(0), 64);
+    }
+
+    #[test]
+    fn test_bitmask_apply_v2() {
+        let bitmask = BitMask::from("000000000000000000000000000000X1001X");
+        assert_eq!(bitmask.apply_v2(42), vec![26, 27, 58, 59]);
     }
 }
