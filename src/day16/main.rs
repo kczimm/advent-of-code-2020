@@ -14,20 +14,22 @@ fn main() -> io::Result<()> {
 }
 
 #[derive(Debug, PartialEq)]
-struct Rule {
+struct Rule<'a> {
+    field_name: &'a str,
     ranges: (RangeInclusive<usize>, RangeInclusive<usize>),
 }
 
-impl Rule {
+impl<'a> Rule<'a> {
     fn is_valid_value(&self, value: usize) -> bool {
         self.ranges.0.contains(&value) || self.ranges.1.contains(&value)
     }
 }
 
-impl From<&str> for Rule {
-    fn from(s: &str) -> Self {
+impl<'a> From<&'a str> for Rule<'a> {
+    fn from(s: &'a str) -> Self {
         let mut parts = s.split(": ");
-        let mut parts = parts.nth(1).unwrap().split(' ');
+        let field_name = parts.nth(0).unwrap();
+        let mut parts = parts.nth(0).unwrap().split(' ');
         let first = parts.nth(0).unwrap();
         let second = parts.nth(1).unwrap();
 
@@ -44,6 +46,7 @@ impl From<&str> for Rule {
         );
 
         Self {
+            field_name,
             ranges: (first, second),
         }
     }
@@ -51,6 +54,14 @@ impl From<&str> for Rule {
 
 #[derive(Debug, PartialEq)]
 struct Ticket(Vec<usize>);
+
+impl Ticket {
+    fn is_valid(&self, r: &Rule) -> bool {
+        self.0
+            .iter()
+            .any(|value| r.ranges.0.contains(value) | r.ranges.1.contains(value))
+    }
+}
 
 impl From<&str> for Ticket {
     fn from(s: &str) -> Self {
@@ -63,13 +74,13 @@ impl From<&str> for Ticket {
 }
 
 #[derive(Debug, PartialEq)]
-struct Notes {
-    rules: Vec<Rule>,
+struct Notes<'a> {
+    rules: Vec<Rule<'a>>,
     your: Ticket,
     nearby: Vec<Ticket>,
 }
 
-impl Notes {
+impl<'a> Notes<'a> {
     fn ticket_scanning_error_rate(&self) -> usize {
         let mut invalid_values = Vec::new();
 
@@ -87,10 +98,21 @@ impl Notes {
     fn valid_for_any_field(&self, value: usize) -> bool {
         self.rules.iter().any(|r| r.is_valid_value(value))
     }
+
+    fn part2(&self) -> usize {
+        let valid_tickets = self
+            .nearby
+            .iter()
+            .filter(|&t| self.rules.iter().all(|r| t.is_valid(r)));
+
+        
+
+        0
+    }
 }
 
-impl From<&str> for Notes {
-    fn from(s: &str) -> Self {
+impl<'a> From<&'a str> for Notes<'a> {
+    fn from(s: &'a str) -> Self {
         let mut parts = s.split("\n\n");
 
         let rules = parts
@@ -129,6 +151,7 @@ mod tests {
         assert_eq!(
             rule,
             Rule {
+                field_name: "class",
                 ranges: (1..=3, 5..=7)
             }
         );
@@ -138,6 +161,7 @@ mod tests {
         assert_eq!(
             rule,
             Rule {
+                field_name: "row",
                 ranges: (6..=11, 33..=44)
             }
         );
@@ -147,6 +171,7 @@ mod tests {
         assert_eq!(
             rule,
             Rule {
+                field_name: "seat",
                 ranges: (13..=40, 45..=50)
             }
         );
@@ -156,6 +181,7 @@ mod tests {
         assert_eq!(
             rule,
             Rule {
+                field_name: "departure location",
                 ranges: (36..=363, 377..=962)
             }
         );
